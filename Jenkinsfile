@@ -8,7 +8,9 @@ node {
     }
     
     stage('Build') {
-        docker.image('python:3.11-alpine').inside {
+        def buildImage = docker.image('python:3.11-alpine')
+        buildImage.pull()
+        buildImage.inside {
             sh '''
                 echo "Compiling Python source to bytecode..."
                 python -m py_compile sources/add2vals.py sources/calc.py
@@ -18,7 +20,8 @@ node {
     }
     
     stage('Test') {
-        docker.image('python:3.11-alpine').inside {
+        def testImage = docker.image('python:3.11-alpine')
+        testImage.inside('-u root:root') {
             sh '''
                 echo "Installing pytest..."
                 pip install pytest
@@ -27,7 +30,6 @@ node {
             '''
         }
         
-        // Always publish test results, even if tests fail
         junit 'test-reports/results.xml'
     }
 }
